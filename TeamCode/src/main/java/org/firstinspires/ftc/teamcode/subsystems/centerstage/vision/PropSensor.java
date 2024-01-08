@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.centerstage.vision;
 
+import static org.firstinspires.ftc.teamcode.opmodes.MainAuton.mTelemetry;
+
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -42,11 +44,11 @@ public class PropSensor {
         return pipeline.propPosition();
     }
 
-    public void printTelemetry(MultipleTelemetry telemetry) {
-        telemetry.addData("Prop position", propPosition());
+    public void printTelemetry() {
+        mTelemetry.addData("Prop position", propPosition());
     }
 
-    public void printNumericalTelemetry(MultipleTelemetry telemetry) {
-        telemetry.addData("FPS", camera.getFps());
+    public void printNumericalTelemetry() {
+        mTelemetry.addData("FPS", camera.getFps());
     }
 }

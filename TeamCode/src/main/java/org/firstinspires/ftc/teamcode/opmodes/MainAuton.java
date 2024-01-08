@@ -7,6 +7,8 @@ import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.LEFT_BUMPER;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.RIGHT_BUMPER;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.X;
 
+import static java.lang.Math.toRadians;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
@@ -23,6 +25,12 @@ public final class MainAuton extends LinearOpMode {
     static Robot robot;
     public static MultipleTelemetry mTelemetry;
     public static GamepadEx gamepadEx1, gamepadEx2;
+
+    public static final double
+            LEFT = toRadians(180),
+            FORWARD = toRadians(90),
+            RIGHT = toRadians(0),
+            BACKWARD = toRadians(270);
 
     public static boolean keyPressed(int gamepad, GamepadKeys.Button button) {
         return (gamepad == 2 ? gamepadEx2 : gamepadEx1).wasJustPressed(button);

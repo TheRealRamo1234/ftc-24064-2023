@@ -6,6 +6,7 @@ import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.DPAD_DOWN;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.DPAD_UP;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.LEFT_BUMPER;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.RIGHT_BUMPER;
+import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.X;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Button.Y;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Trigger.LEFT_TRIGGER;
 import static com.arcrobotics.ftclib.gamepad.GamepadKeys.Trigger.RIGHT_TRIGGER;
@@ -16,6 +17,7 @@ import static org.firstinspires.ftc.teamcode.opmodes.MainAuton.mTelemetry;
 import static org.firstinspires.ftc.teamcode.opmodes.MainAuton.robot;
 import static java.lang.Math.atan2;
 import static java.lang.Math.hypot;
+import static java.lang.Math.max;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -33,40 +35,27 @@ public final class MainTeleOp extends LinearOpMode {
      */
     @Override
     public void runOpMode() throws InterruptedException {
-        // Initialize multiple telemetry outputs:
+        // Initialize telemetry
         mTelemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        // The gamepads are set to GamepadEx objects
+        // Initialize gamepads
         gamepadEx1 = new GamepadEx(gamepad1);
         gamepadEx2 = new GamepadEx(gamepad2);
 
-        // Instantiated the robot class
+        // Instantiate robot
         robot = new Robot(hardwareMap);
 
         waitForStart();
 
         // Control loop:
         while (opModeIsActive()) {
-            robot.readSensors();
             // Read sensors + gamepads:
+            robot.readSensors();
             gamepadEx1.readButtons();
             gamepadEx2.readButtons();
 
-            // Changes the level of the lift, which is changed by the d-pad
-             if (keyPressed(2, DPAD_UP)) robot.lift.increment();
-             if (keyPressed(2, DPAD_DOWN)) robot.lift.decrement();
-             if (keyPressed(2, A)) robot.lift.updateTarget();
-
-            // The intake's motor power is set by the tuning of the triggers on the gamepad
-            robot.intake.set(gamepadEx1.getTrigger(RIGHT_TRIGGER) - gamepadEx1.getTrigger(LEFT_TRIGGER));
-
-            if (robot.lift.getSetPoint() >= 0) {
-                if (keyPressed(2, Y)) robot.arm.toggleArm();
-                if (keyPressed(2, B)) robot.arm.toggleFlap();
-            }
-
-            robot.climber.set(gamepadEx2.getRightY());
-          
+            // Gamepad 1
+            // Change the heading of the drivetrain in field-centric mode
             double x = gamepadEx1.getRightX();
             if (gamepadEx1.isDown(LEFT_BUMPER)) {
                 double y = gamepadEx1.getRightY();
@@ -74,12 +63,12 @@ public final class MainTeleOp extends LinearOpMode {
                 x = 0;
             }
 
-            // Field-centric drive dt with control stick inputs:
+            // Control drivetrain with control stick inputs:
             if (gamepadEx1.isDown(RIGHT_BUMPER)) {
                 robot.drivetrain.run(
-                        -gamepadEx1.getLeftX() * 0.2,
-                        -gamepadEx1.getLeftY() * 0.2,
-                        -x * 0.2
+                        -gamepadEx1.getLeftX() * 0.5,
+                        -gamepadEx1.getLeftY() * 0.5,
+                        -x * 0.5
                 );
             } else {
                 robot.drivetrain.run(
@@ -89,8 +78,25 @@ public final class MainTeleOp extends LinearOpMode {
                 );
             }
 
-            robot.run();
+            // Gamepad 2
+            if (keyPressed(2, DPAD_UP)) robot.lift.increment();
+            if (keyPressed(2, DPAD_DOWN)) robot.lift.decrement();
+            if (keyPressed(2, A)) robot.lift.updateTarget();
+            if (keyPressed(2, B)) robot.arm.toggleFlap();
+            if (keyPressed(2, X)) robot.launcher.setActivated(true);
+            if (robot.lift.getSetPoint() >= 0) {
+                if (keyPressed(2, Y)) robot.arm.toggleArm();
+            }
+            robot.climber.set(gamepadEx2.getRightY());
 
+            // Shared
+            // The intake power is set by the greatest trigger value
+            robot.intake.set(max(
+                    gamepadEx2.getTrigger(RIGHT_TRIGGER) - gamepadEx2.getTrigger(LEFT_TRIGGER),
+                    gamepadEx1.getTrigger(RIGHT_TRIGGER) - gamepadEx1.getTrigger(LEFT_TRIGGER)
+            ));
+
+            robot.run();
             robot.printTelemetry();
             mTelemetry.update();
         }
